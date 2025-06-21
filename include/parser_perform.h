@@ -33,5 +33,7 @@ ast_node_t* parse_perform_parameters(parser_t* parser);
 // parser_perform_call.c
 ast_node_t* parse_perform_call(parser_t* parser);
 
+void parse_perform_error(parser_t* parser, const char* message);
+
 
 #endif // PARSER_PERFORM_H
