@@ -4,34 +4,47 @@
 #include "ast.h"
 #include "lexer.h"
 #include "parser.h"
-#include "ast.h"
-#include "parser_context.h"
 
-// Главная функция парсинга CALL FUNCTION
-ast_node_t* parse_call(parser_context_t* ctx);
+//
+// Основные функции парсинга вызовов CALL FUNCTION
+//
 
-// Простая конструкция: CALL FUNCTION 'func_name'.
+// Парсинг простого вызова функции: CALL FUNCTION 'FUNC'.
 ast_node_t* parse_call_simple(parser_context_t* ctx);
 
-// Парсинг EXPORTING параметров
-ast_node_t* parse_call_exporting(parser_context_t* ctx);
+// Парсинг вызова функции с параметрами: EXPORTING, IMPORTING, CHANGING
+ast_node_t* parse_call_parameters(parser_context_t* ctx);
 
-// Парсинг IMPORTING параметров
-ast_node_t* parse_call_importing(parser_context_t* ctx);
+// Парсинг возврата значений (IMPORTING и RETURNING)
+ast_node_t* parse_call_return_values(parser_context_t* ctx);
 
-// Парсинг EXCEPTIONS блока
+// Парсинг сложного вызова: параметры, исключения, возврат, точка
+ast_node_t* parse_call_complex(parser_context_t* ctx);
+
+//
+// Дополнительные конструкции
+//
+
+// Парсинг вложенных вызовов: CALL FUNCTION ... внутри CALL FUNCTION ...
+ast_node_t* parse_call_nested(parser_context_t* ctx);
+
+// Парсинг динамического вызова: CALL FUNCTION func_name (где func_name — переменная)
+ast_node_t* parse_call_dynamic(parser_context_t* ctx);
+
+// Вызов с указанием имени функции в скобках: CALL FUNCTION('FUNC')
+ast_node_t* parse_call_bracketed(parser_context_t* ctx);
+
+// Вызов функции в цикле: DO ... CALL FUNCTION ... ENDDO
+ast_node_t* parse_call_loop(parser_context_t* ctx);
+
+// Обработка секции EXCEPTIONS: ... EXCEPTIONS error1 = 1 error2 = 2 ...
 ast_node_t* parse_call_exceptions(parser_context_t* ctx);
 
-// Парсинг TABLES блока
-ast_node_t* parse_call_tables(parser_context_t* ctx);
+//
+// Обработка ошибок
+//
 
-// Обработка ошибок парсинга CALL
+// Вывод синтаксической ошибки вызова CALL FUNCTION
 void parse_call_error(const char* message, parser_context_t* ctx);
-
-// Основные функции
-ast_node_t* parse_call_simple(parser_context_t* ctx);
-ast_node_t* parse_call_parameters(parser_context_t* ctx);
-ast_node_t* parse_call_nested(parser_context_t* ctx);
-ast_node_t* parse_call_return_values(parser
 
 #endif // PARSER_CALL_H
