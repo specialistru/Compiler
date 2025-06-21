@@ -1,48 +1,42 @@
-#include "parser.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "parser.h"
+#include "ast.h"
+#include "error_handling.h"
 
-static int expect(Token* tokens, int* pos, const char* expected) {
-    if (strcmp(tokens[*pos].text, expected) == 0) {
-        (*pos)++;
-        return 1;
-    }
-    printf("Syntax error: expected '%s', found '%s'\n", expected, tokens[*pos].text);
-    return 0;
+// Очень упрощённый пример парсера: только список идентификаторов как программа
+static parser_t* global_parser;
+
+static void parser_advance() {
+    global_parser->current_token = lexer_next_token();
 }
 
-static int parse_methods(Token* tokens, int* pos) {
-    if (!expect(tokens, pos, "METHODS")) return 0;
-    if (!expect(tokens, pos, ":")) return 0;
-
-    while (tokens[*pos].type != TOKEN_EOF) {
-        if (strcmp(tokens[*pos].text, "ENDCLASS") == 0) break;
-        // Пропускаем метод - очень упрощенно
-        (*pos)++;
-    }
-    return 1;
+void parser_init(parser_t* parser, const char* source) {
+    global_parser = parser;
+    lexer_init(source);
+    parser_advance();
 }
 
-ParseResult parse_class(Token* tokens) {
-    int pos = 0;
-    ParseResult result = {0, 0};
-
-    if (!expect(tokens, &pos, "CLASS")) return result;
-    if (tokens[pos].type != TOKEN_IDENTIFIER) {
-        printf("Syntax error: expected class name\n");
-        return result;
+static ast_node_t* parse_identifier() {
+    if (global_parser->current_token.type == TOKEN_IDENTIFIER) {
+        ast_node_t* node = ast_node_create(AST_VARIABLE, global_parser->current_token.text);
+        parser_advance();
+        return node;
     }
-    pos++;
-    if (!expect(tokens, &pos, "DEFINITION")) return result;
-    if (!expect(tokens, &pos, ".")) return result;
-
-    if (!parse_methods(tokens, &pos)) return result;
-
-    if (!expect(tokens, &pos, "ENDCLASS")) return result;
-    if (!expect(tokens, &pos, ".")) return result;
-
-    result.success = 1;
-    result.pos = pos;
-    return result;
+    log_error("Expected identifier");
+    return NULL;
 }
 
+ast_node_t* parser_parse_program(parser_t* parser) {
+    ast_node_t* root = ast_node_create(AST_PROGRAM, NULL);
+    while (global_parser->current_token.type != TOKEN_EOF) {
+        ast_node_t* node = parse_identifier();
+        if (node) {
+            ast_node_add_child(root, node);
+        } else {
+            break;
+        }
+    }
+    return root;
+}
