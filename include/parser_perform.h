@@ -24,4 +24,8 @@ void perform_error_missing_identifier(parser_t* parser, const char* construct);
 void perform_error_missing_endform(parser_t* parser);
 void perform_error_using_no_params(parser_t* parser);
 
+// parser_perform_endform.c
+ast_node_t* parse_perform_endform(parser_t* parser);
+
+
 #endif // PARSER_PERFORM_H
