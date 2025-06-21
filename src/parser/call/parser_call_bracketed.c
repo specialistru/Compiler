@@ -1,41 +1,40 @@
 #include "parser_call.h"
 
-// Парсинг вызовов в скобках: CALL FUNCTION('FUNC_NAME')
+// CALL FUNCTION('FUNC') — вызов с именем в скобках
 ast_node_t* parse_call_bracketed(parser_context_t* ctx) {
-    if (!parser_match_keyword(ctx, "CALL") || !parser_match_keyword(ctx, "FUNCTION")) {
+    if (!parser_match_keyword(ctx, "CALL") || !parser_match_keyword(ctx, "FUNCTION"))
         return NULL;
-    }
-    if (!parser_match(ctx, TOKEN_SYMBOL, "(")) {
+
+    if (!parser_match_symbol(ctx, "(")) {
+        parse_call_error("Ожидалась '(' после FUNCTION", ctx);
         return NULL;
     }
 
-    // Ожидаем строку с именем функции
     if (ctx->current.type != TOKEN_STRING) {
-        parse_call_error("Expected function name string inside brackets", ctx);
+        parse_call_error("Ожидалась строка с именем функции", ctx);
         return NULL;
     }
 
     token_t func_name = ctx->current;
     parser_advance(ctx);
 
-    if (!parser_match(ctx, TOKEN_SYMBOL, ")")) {
-        parse_call_error("Expected ')' after function name", ctx);
+    if (!parser_match_symbol(ctx, ")")) {
+        parse_call_error("Ожидалась ')'", ctx);
         return NULL;
     }
 
-    ast_node_t* node = ast_node_create(AST_CALL_BRACKETED, func_name);
+    ast_node_t* root = ast_node_create(AST_CALL_BRACKETED, func_name);
 
-    // Парсим параметры и исключения
     ast_node_t* params = parse_call_parameters(ctx);
-    if (params) ast_node_add_child(node, params);
+    if (params) ast_node_add_child(root, params);
 
     ast_node_t* exceptions = parse_call_exceptions(ctx);
-    if (exceptions) ast_node_add_child(node, exceptions);
+    if (exceptions) ast_node_add_child(root, exceptions);
 
-    if (!parser_match(ctx, TOKEN_SYMBOL, ".")) {
-        parse_call_error("Expected '.' after CALL FUNCTION(...)", ctx);
+    if (!parser_match_symbol(ctx, ".")) {
+        parse_call_error("Ожидалась '.' после CALL FUNCTION(...)", ctx);
         return NULL;
     }
 
-    return node;
+    return root;
 }
