@@ -1,4 +1,5 @@
 #include "semantic.h"
+#include "error_handling.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -14,3 +15,12 @@ int semantic_check(const char* class_name, const char* method_name) {
     return 1;
 }
 
+semantic_result_t semantic_analyze(ast_node_t* root) {
+    // Простая проверка: если корень пуст — ошибка
+    if (!root || root->type != AST_PROGRAM) {
+        log_error("Semantic error: root node invalid");
+        return SEMANTIC_ERROR;
+    }
+    // В реале тут проверка типов, объявлений, область видимости
+    return SEMANTIC_OK;
+}
