@@ -1,27 +1,28 @@
 #include "parser_perform.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-// Разбор секции USING после FORM или PERFORM
-ast_node_t* parse_using_clause(parser_t* parser) {
-    if (!parser_match(parser, TOKEN_KEYWORD, "USING")) {
-        return NULL; // Не ошибка, если USING отсутствует
-    }
+// Парсинг параметров USING и CHANGING внутри FORM
+ast_node_t* parse_perform_parameters(parser_t* parser) {
+    ast_node_t* param_root = ast_node_create(AST_PARAMETERS, parser->current);
 
-    token_t using_tok = parser->previous;
-    ast_node_t* using_node = ast_node_create(AST_USING, using_tok);
+    while (parser_match(parser, TOKEN_KEYWORD, "USING") || parser_match(parser, TOKEN_KEYWORD, "CHANGING")) {
+        token_t keyword_token = parser_previous(parser);
+        ast_node_type_t param_type = (strcmp(keyword_token.lexeme, "USING") == 0)
+                                     ? AST_EXPR_USING
+                                     : AST_EXPR_CHANGING;
 
-    // Один или несколько идентификаторов
-    do {
-        if (!parser_expect(parser, TOKEN_IDENTIFIER, "Ожидался параметр после USING")) {
-            ast_node_free(using_node);
-            return NULL;
+        ast_node_t* param_section = ast_node_create(param_type, keyword_token);
+
+        // Парсим список параметров: идентификаторы через пробел
+        while (parser_check(parser, TOKEN_IDENTIFIER)) {
+            token_t ident_token = parser_advance(parser);
+            ast_node_t* ident_node = ast_node_create(AST_EXPR_IDENTIFIER, ident_token);
+            ast_node_add_child(param_section, ident_node);
         }
 
-        token_t param_tok = parser->previous;
-        ast_node_t* param_node = ast_node_create(AST_EXPR_IDENTIFIER, param_tok);
-        ast_node_add_child(using_node, param_node);
+        ast_node_add_child(param_root, param_section);
+    }
 
-    } while (parser_match(parser, TOKEN_SYMBOL, ",")); // Поддержка списка через запятую (опционально)
-
-    return using_node;
+    return param_root;
 }
