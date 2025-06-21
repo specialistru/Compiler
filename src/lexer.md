@@ -1,29 +1,29 @@
-## 1. Объявление данных:
+### 1. Объявление данных:
 DATA, CONSTANTS, TYPES, PARAMETERS, SELECT-OPTIONS, TABLES, FIELD-SYMBOLS, RANGES, DATA, FIELD-GROUPS
 
 ## 2. Управление потоком:
 IF, ELSE, ELSEIF, ENDIF, CASE, WHEN, OTHERWISE, ENDCASE, DO, WHILE, ENDDO, LOOP, ENDLOOP, EXIT, CONTINUE, CHECK, RETURN
 
-3. Операторы обработки:
+## 3. Операторы обработки:
 MOVE, MOVE-CORRESPONDING, CLEAR, REFRESH, APPEND, DELETE, INSERT, MODIFY, READ, SORT, COLLECT, TRANSFER
 
-4. Операторы вызова:
+## 4. Операторы вызова:
 CALL FUNCTION, PERFORM, CALL METHOD, EXEC SQL, SUBMIT, WAIT, MESSAGE, RAISE
 
-5. Работа с таблицами:
+## 5. Работа с таблицами:
 OPEN CURSOR, FETCH, CLOSE CURSOR, SELECT, SELECT SINGLE, ENDSELECT, MODIFY TABLE, LOOP AT, READ TABLE, DELETE TABLE, INSERT TABLE
 
-6. Операторы обработки исключений:
+## 6. Операторы обработки исключений:
 TRY, CATCH, CLEANUP, ENDTRY, MESSAGE, RAISE EXCEPTION
 
-7. Определение программных объектов:
+## 7. Определение программных объектов:
 REPORT, PROGRAM, FUNCTION, FUNCTION-POOL, FORM, CLASS, INTERFACE, METHOD, ENDCLASS, ENDINTERFACE
 
-8. Модульные операторы:
+## 8. Модульные операторы:
 PERFORM, SUBMIT, CALL FUNCTION, CALL METHOD, RETURN
 
-9. Ключевые слова структуры:
+## 9. Ключевые слова структуры:
 STRUCTURE, TABLE TYPE, OCCURS, WITH HEADER LINE, LIKE, TYPE, CONSTANTS, INITIALIZATION, AT SELECTION-SCREEN
 
-10. Специальные:
+## 10. Специальные:
 EXPORT, IMPORT, MEMORY ID, SET PARAMETER, GET PARAMETER, AUTHORITY-CHECK, NEW, FREE, REF TO, CREATE OBJECT, FREE OBJECT
