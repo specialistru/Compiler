@@ -2,38 +2,45 @@
 #define PARSER_PERFORM_H
 
 #include "ast.h"
-#include "parser.h"
+#include "parser_context.h"
 
-// Главная функция для разбора конструкции PERFORM
-ast_node_t* parse_perform(parser_t* parser);
+// Главная функция парсинга конструкции PERFORM (весь блок)
+ast_node_t* parse_perform(parser_context_t* ctx);
 
-// Простая форма PERFORM form_name.
-ast_node_t* parse_perform_simple(parser_t* parser);
+// Парсинг вложенной конструкции PERFORM (PERFORM внутри PERFORM)
+ast_node_t* parse_perform_nested(parser_context_t* ctx);
 
-// PERFORM form_name USING ... CHANGING ...
-ast_node_t* parse_perform_with_params(parser_t* parser);
+// Парсинг логических операторов в PERFORM (AND, OR и т.д.)
+ast_node_t* parse_perform_logical_ops(parser_context_t* ctx);
 
-// Обработка вложенных PERFORM (если они поддерживаются)
-ast_node_t* parse_perform_nested(parser_t* parser);
+// Обработка синтаксических ошибок в конструкции PERFORM
+void parse_perform_syntax_error(parser_context_t* ctx);
 
-// Проверка синтаксических ошибок
-void parse_perform_error(const char* message, parser_t* parser);
+// Парсинг сложных конструкций PERFORM с несколькими выражениями
+ast_node_t* parse_perform_complex(parser_context_t* ctx);
 
-// parser_perform_error_handling.c
-void perform_error_missing_identifier(parser_t* parser, const char* construct);
-void perform_error_missing_endform(parser_t* parser);
-void perform_error_using_no_params(parser_t* parser);
+// Парсинг логических операторов AND/OR в PERFORM
+ast_node_t* parse_perform_and_or(parser_context_t* ctx);
 
-// parser_perform_endform.c
-ast_node_t* parse_perform_endform(parser_t* parser);
+// Обработка и отчёт об ошибках PERFORM
+void parse_perform_errors(parser_context_t* ctx);
 
-// parser_perform_using.c
-ast_node_t* parse_perform_parameters(parser_t* parser);
+// Парсинг конструкции ELSEIF внутри PERFORM (если есть)
+ast_node_t* parse_perform_elseif(parser_context_t* ctx);
 
-// parser_perform_call.c
-ast_node_t* parse_perform_call(parser_t* parser);
+// Парсинг конструкции ELSE внутри PERFORM (если есть)
+ast_node_t* parse_perform_else(parser_context_t* ctx);
 
-void parse_perform_error(parser_t* parser, const char* message);
+// Парсинг логического оператора NOT внутри PERFORM
+ast_node_t* parse_perform_not(parser_context_t* ctx);
 
+// Парсинг условий в скобках ( ) в конструкции PERFORM
+ast_node_t* parse_perform_bracketed(parser_context_t* ctx);
+
+// Парсинг глубоко вложенных конструкций PERFORM (PERFORM внутри PERFORM)
+ast_node_t* parse_perform_deep_nested(parser_context_t* ctx);
+
+// Парсинг сложного тела PERFORM с несколькими инструкциями
+ast_node_t* parse_perform_complex_body(parser_context_t* ctx);
 
 #endif // PARSER_PERFORM_H
