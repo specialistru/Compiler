@@ -2,7 +2,17 @@
 #define AST_H
 
 #include <stddef.h>
-#include "lexer.h"  // token_t
+#include "lexer.h"
+
+/**
+ * AST-узел
+ */
+typedef struct ast_node_t {
+    ast_node_type_t type;           // Тип узла
+    token_t token;                  // Токен, связанный с узлом
+    struct ast_node_t** children;   // Массив дочерних узлов
+    int child_count;                // Количество дочерних узлов
+} ast_node_t;
 
 typedef enum {
     // Корневой узел программы
@@ -102,27 +112,47 @@ typedef enum {
     AST_UNKNOWN
 } ast_node_type_t;
 
-typedef struct ast_node {
-    ast_node_type_t type;
-    token_t token;                  // Лексема, где начинается узел (можно расширить на позицию окончания)
-    struct ast_node** children;
-    size_t child_count;
-} ast_node_t;
-
-// Создание узла
+/**
+ * Создаёт новый AST-узел с заданным типом и токеном.
+ * Выделяет память и инициализирует поля.
+ *
+ * @param type Тип AST-узла
+ * @param token Лексема, связанная с узлом
+ * @return Указатель на созданный AST-узел
+ */
 ast_node_t* ast_node_create(ast_node_type_t type, token_t token);
 
-// Добавление дочернего узла
-int ast_node_add_child(ast_node_t* parent, ast_node_t* child);
 
-// Освобождение дерева
+/**
+ * Добавляет дочерний узел к родительскому
+ *
+ * @param parent Родительский узел
+ * @param child Дочерний узел
+ */
+void ast_node_add_child(ast_node_t* parent, ast_node_t* child);
+
+/**
+ * Освобождает память, занятую AST-узлом и всеми его дочерними узлами
+ *
+ * @param node Узел для освобождения
+ */
 void ast_node_free(ast_node_t* node);
 
-// Получение человекочитаемого имени узла
+/**
+ * Возвращает человеко-читаемое имя для типа AST-узла
+ *
+ * @param type Тип AST-узла
+ * @return Строка с именем узла
+ */
 const char* ast_node_type_name(ast_node_type_t type);
 
-// Печать дерева для отладки
-void ast_node_print(const ast_node_t* node, int indent);
+/**
+ * Рекурсивно печатает AST для отладки
+ *
+ * @param node Узел для печати
+ * @param indent Отступ для форматирования
+ */
+void ast_node_print(ast_node_t* node, int indent);
 
 // Сериализация AST в строку (для тестов)
 char* ast_node_serialize(const ast_node_t* node);
