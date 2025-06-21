@@ -1,12 +1,6 @@
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
 
-typedef struct {
-    int op;
-    char arg1[64];
-} Instruction;
+void optimizer_optimize();
 
-int optimize(Instruction* code, int n);
-
-#endif
-
+#endif // OPTIMIZER_H
