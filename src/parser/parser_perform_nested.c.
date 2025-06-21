@@ -1,0 +1,93 @@
+// parser_perform_nested.c
+#include "parser_perform_nested.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+// Вспомогательная функция — проверяет, что текущий токен соответствует ожидаемому,
+// и двигает парсер дальше. Если нет — сообщает об ошибке и завершает.
+static void expect_token(parser_context_t* ctx, token_type_t expected_type, const char* expected_lexeme) {
+    if (ctx->current.type != expected_type ||
+        (expected_lexeme && strcmp(ctx->current.lexeme, expected_lexeme) != 0)) {
+        fprintf(stderr, "[PARSER ERROR] Ожидался токен '%s', но найден '%s'\n",
+                expected_lexeme ? expected_lexeme : "<тип>", ctx->current.lexeme);
+        exit(EXIT_FAILURE);
+    }
+    parser_advance(ctx);
+}
+
+// Парсинг вложенного блока PERFORM
+// Поддерживает вызовы вида:
+// PERFORM subroutine_name.
+// PERFORM subroutine_name USING ....
+// PERFORM subroutine_name.
+//   PERFORM another_subroutine.
+// END PERFORM.
+//
+// Возвращает AST узел типа PERFORM_NESTED
+ast_node_t* parse_perform_nested(parser_context_t* ctx) {
+    // Создаем AST узел для блока PERFORM
+    ast_node_t* node = ast_node_create(AST_PERFORM_NESTED, ctx->current);
+
+    // Ожидаем ключевое слово PERFORM (уже прочитано до вызова функции)
+    // Теперь берем имя подпрограммы
+    if (ctx->current.type != TOKEN_IDENTIFIER) {
+        fprintf(stderr, "[PARSER ERROR] Ожидалось имя подпрограммы после PERFORM, найдено '%s'\n",
+                ctx->current.lexeme);
+        exit(EXIT_FAILURE);
+    }
+    token_t sub_name = ctx->current;
+    parser_advance(ctx);
+
+    // Создаем узел для имени подпрограммы и добавляем в дерево
+    ast_node_t* sub_name_node = ast_node_create(AST_EXPR_IDENTIFIER, sub_name);
+    ast_node_add_child(node, sub_name_node);
+
+    // Обработка опциональных параметров USING, CHANGING и др. (можно расширить)
+    while (ctx->current.type == TOKEN_KEYWORD &&
+           (strcmp(ctx->current.lexeme, "USING") == 0 ||
+            strcmp(ctx->current.lexeme, "CHANGING") == 0)) {
+        token_t param_token = ctx->current;
+        parser_advance(ctx);
+
+        ast_node_t* param_node = ast_node_create(AST_PERFORM_PARAM, param_token);
+
+        // Ожидаем идентификаторы параметров, разделенных запятыми
+        while (ctx->current.type == TOKEN_IDENTIFIER) {
+            token_t param_name = ctx->current;
+            parser_advance(ctx);
+
+            ast_node_t* param_name_node = ast_node_create(AST_EXPR_IDENTIFIER, param_name);
+            ast_node_add_child(param_node, param_name_node);
+
+            if (ctx->current.type == TOKEN_SYMBOL && strcmp(ctx->current.lexeme, ",") == 0) {
+                parser_advance(ctx); // пропускаем запятую
+            } else {
+                break;
+            }
+        }
+        ast_node_add_child(node, param_node);
+    }
+
+    // Проверяем, идет ли следующий PERFORM — вложенный вызов
+    while (ctx->current.type == TOKEN_KEYWORD && strcmp(ctx->current.lexeme, "PERFORM") == 0) {
+        // Рекурсивно парсим вложенный PERFORM
+        ast_node_t* nested_node = parse_perform_nested(ctx);
+        ast_node_add_child(node, nested_node);
+    }
+
+    // Проверяем конец блока END PERFORM
+    if (ctx->current.type == TOKEN_KEYWORD && strcmp(ctx->current.lexeme, "END") == 0) {
+        parser_advance(ctx);
+        expect_token(ctx, TOKEN_KEYWORD, "PERFORM");
+    } else if (ctx->current.type == TOKEN_SYMBOL && strcmp(ctx->current.lexeme, ".") == 0) {
+        // Если нет вложенных блоков, точка завершает вызов PERFORM
+        parser_advance(ctx);
+    } else {
+        // Если нет ни END PERFORM, ни точки, выдаем ошибку
+        fprintf(stderr, "[PARSER ERROR] Ожидался конец блока PERFORM ('.' или 'END PERFORM'), найден '%s'\n",
+                ctx->current.lexeme);
+        exit(EXIT_FAILURE);
+    }
+
+    return node;
+}
