@@ -1,14 +1,15 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "ast.h"
 #include "lexer.h"
 
 typedef struct {
-    int success;
-    int pos;
-} ParseResult;
+    // контекст парсера
+    token_t current_token;
+} parser_t;
 
-ParseResult parse_class(Token* tokens);
+void parser_init(parser_t* parser, const char* source);
+ast_node_t* parser_parse_program(parser_t* parser);
 
-#endif
-
+#endif // PARSER_H
