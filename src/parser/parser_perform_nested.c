@@ -1,44 +1,54 @@
-#include "parser_perform.h"
+#include "parser_perform_nested.h"
+#include "parser_utils.h"
 #include <stdio.h>
 
-// Парсинг вложенного вызова PERFORM
-// Поддержка вложенных блоков PERFORM внутри тела другой процедуры
+// Парсинг вложенного PERFORM
+// Форматы:
+// PERFORM subroutine_name [USING ... CHANGING ...].
+// PERFORM subroutine_name.
+//    PERFORM nested_subroutine.
+// END PERFORM.
+//
 ast_node_t* parse_perform_nested(parser_context_t* ctx) {
-    // Проверяем, что текущий токен - PERFORM
-    if (!parser_match(ctx, TOKEN_KEYWORD, "PERFORM")) {
-        return NULL; // Не PERFORM - выходим
+    if (!parser_match_keyword(ctx, "PERFORM")) {
+        return NULL;
     }
 
-    // Сохраняем имя подпрограммы
-    token_t subroutine_token = expect_identifier(ctx);
+    token_t subroutine_name = expect_identifier(ctx);
 
-    // Создаем AST узел для вызова PERFORM
-    ast_node_t* node = ast_node_create(AST_PERFORM_NESTED, subroutine_token);
+    ast_node_t* perform_node = ast_node_create(AST_PERFORM_NESTED, ctx->previous);
 
-    // Далее парсим возможные параметры и тело (если есть)
-    // Пример вложенного PERFORM с телом
-    // PERFORM subroutine.
-    //   PERFORM nested_subroutine.
-    // END_PERFORM.
+    // Добавляем имя подпрограммы
+    ast_node_t* sub_node = ast_node_create(AST_EXPR_IDENTIFIER, subroutine_name);
+    ast_node_add_child(perform_node, sub_node);
 
-    // Проверяем тело PERFORM (опционально)
-    if (parser_match(ctx, TOKEN_SYMBOL, ".")) {
-        // Простое окончание вызова
-        return node;
+    // Парсим параметры USING / CHANGING (если есть)
+    while (parser_match_keyword(ctx, "USING") || parser_match_keyword(ctx, "CHANGING")) {
+        token_t param_type = ctx->previous;
+        ast_node_t* param_node = ast_node_create(AST_PERFORM_PARAM, param_type);
+
+        // Ожидаем список идентификаторов параметров
+        do {
+            token_t param_ident = expect_identifier(ctx);
+            ast_node_t* ident_node = ast_node_create(AST_EXPR_IDENTIFIER, param_ident);
+            ast_node_add_child(param_node, ident_node);
+        } while (parser_match_symbol(ctx, ","));
+
+        ast_node_add_child(perform_node, param_node);
     }
 
-    // Если после имени нет точки, пытаемся распарсить вложенный блок
-    while (!parser_check(ctx, TOKEN_KEYWORD, "END_PERFORM")) {
-        ast_node_t* child = parse_perform_nested(ctx);
-        if (!child) {
-            fprintf(stderr, "[PARSER ERROR] Ожидался вложенный PERFORM или END_PERFORM\n");
-            exit(EXIT_FAILURE);
+    // Проверяем точку в конце
+    if (!parser_match_symbol(ctx, ".")) {
+        parse_error("Ожидалась точка '.' после PERFORM", ctx);
+    }
+
+    // Проверка на вложенный PERFORM внутри тела
+    if (parser_check_keyword(ctx, "PERFORM")) {
+        ast_node_t* nested = parse_perform_nested(ctx);
+        if (nested) {
+            ast_node_add_child(perform_node, nested);
         }
-        ast_node_add_child(node, child);
     }
 
-    // Съедаем END_PERFORM
-    parser_advance(ctx);
-
-    return node;
+    return perform_node;
 }
