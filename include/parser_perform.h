@@ -19,4 +19,9 @@ ast_node_t* parse_perform_nested(parser_t* parser);
 // Проверка синтаксических ошибок
 void parse_perform_error(const char* message, parser_t* parser);
 
+// parser_perform_error_handling.c
+void perform_error_missing_identifier(parser_t* parser, const char* construct);
+void perform_error_missing_endform(parser_t* parser);
+void perform_error_using_no_params(parser_t* parser);
+
 #endif // PARSER_PERFORM_H
