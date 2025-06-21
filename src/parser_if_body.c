@@ -1,17 +1,28 @@
-// parser_if_body.c
 #include "parser_if_body.h"
+#include "parser_if_nested.h"
+#include "lexer.h"
 #include "ast.h"
-#include "parser.h"
 
-// Парсинг тела блока IF, ELSEIF, ELSE (список инструкций)
-bool parse_if_body(parser_t* parser, ast_node_t* parent_node) {
-    while (!parser_check_keyword(parser, "ELSEIF") &&
-           !parser_check_keyword(parser, "ELSE") &&
-           !parser_check_keyword(parser, "ENDIF") &&
-           !parser_is_at_end(parser)) {
-        ast_node_t* stmt = parse_statement(parser);
-        if (!stmt) return false;
-        ast_node_add_child(parent_node, stmt);
+// Здесь заглушка: тело IF может содержать множество инструкций, включая вложенный IF
+ast_node_t* parse_if_body(token_stream_t *tokens) {
+    ast_node_t *body_node = ast_node_create(AST_BODY, tokens->current_token);
+
+    // Пока не встречаем ELSE/ELSEIF/ENDIF, парсим инструкции
+    while (tokens->current_token.type != TOKEN_ELSE &&
+           tokens->current_token.type != TOKEN_ELSEIF &&
+           tokens->current_token.type != TOKEN_ENDIF &&
+           tokens->current_token.type != TOKEN_EOF) {
+
+        // Пробуем вложенный IF
+        ast_node_t *nested_if = parse_if_nested(tokens);
+        if (nested_if) {
+            ast_node_add_child(body_node, nested_if);
+            continue;
+        }
+
+        // TODO: добавить парсинг других инструкций (например, PERFORM, CALL FUNCTION и др.)
+        // Для примера: пропускаем текущий токен (заглушка)
+        token_advance(tokens);
     }
-    return true;
+    return body_node;
 }
