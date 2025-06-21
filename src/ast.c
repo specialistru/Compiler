@@ -23,9 +23,16 @@ static void* safe_realloc(void* ptr, size_t size) {
     return new_ptr;
 }
 
-// Создание нового AST-узла
+/**
+ * Создаёт новый AST-узел с заданным типом и токеном.
+ * Выделяет память и инициализирует поля.
+ */
 ast_node_t* ast_node_create(ast_node_type_t type, token_t token) {
-    ast_node_t* node = (ast_node_t*)safe_malloc(sizeof(ast_node_t));
+    ast_node_t* node = malloc(sizeof(ast_node_t));
+    if (!node) {
+        fprintf(stderr, "[AST ERROR] Failed to allocate memory for AST node\n");
+        exit(EXIT_FAILURE);
+    }
     node->type = type;
     node->token = token;
     node->children = NULL;
@@ -33,21 +40,26 @@ ast_node_t* ast_node_create(ast_node_type_t type, token_t token) {
     return node;
 }
 
-// Добавление дочернего узла
-int ast_node_add_child(ast_node_t* parent, ast_node_t* child) {
-    if (!parent || !child) return -1;
-    size_t new_size = (parent->child_count + 1) * sizeof(ast_node_t*);
-    ast_node_t** new_children = (ast_node_t**)safe_realloc(parent->children, new_size);
-    if (!new_children) return -1;  // Безопасность, хотя safe_realloc вызовет exit
+/**
+ * Добавляет дочерний узел к родительскому
+ */
+void ast_node_add_child(ast_node_t* parent, ast_node_t* child) {
+    if (!parent || !child) return;
+    ast_node_t** new_children = realloc(parent->children, sizeof(ast_node_t*) * (parent->child_count + 1));
+    if (!new_children) {
+        fprintf(stderr, "[AST ERROR] Failed to allocate memory for children array\n");
+        exit(EXIT_FAILURE);
+    }
     parent->children = new_children;
     parent->children[parent->child_count++] = child;
-    return 0;
 }
 
-// Освобождение AST
+/**
+ * Освобождает память, занятую AST-узлом и всеми его дочерними узлами
+ */
 void ast_node_free(ast_node_t* node) {
     if (!node) return;
-    for (size_t i = 0; i < node->child_count; ++i) {
+    for (int i = 0; i < node->child_count; ++i) {
         ast_node_free(node->children[i]);
     }
     free(node->children);
@@ -55,7 +67,9 @@ void ast_node_free(ast_node_t* node) {
     free(node);
 }
 
-// Человеко-читаемые имена узлов
+/**
+ * Возвращает человеко-читаемое имя для типа AST-узла
+ */
 static const char* ast_node_type_name(ast_node_type_t type) {
     switch (type) {
         // Основной корень дерева
@@ -152,8 +166,10 @@ static const char* ast_node_type_name(ast_node_type_t type) {
     }
 }
 
-// Отладочная печать AST (для тестов)
-void ast_node_print(const ast_node_t* node, int indent) {
+/**
+ * Рекурсивно печатает AST для отладки с отступами
+ */
+void ast_node_print(ast_node_t* node, int indent) {
     if (!node) return;
 
     for (int i = 0; i < indent; i++) printf("  ");
@@ -163,7 +179,7 @@ void ast_node_print(const ast_node_t* node, int indent) {
     }
     printf(")\n");
 
-    for (size_t i = 0; i < node->child_count; ++i) {
+    for (int i = 0; i < node->child_count; ++i) {
         ast_node_print(node->children[i], indent + 1);
     }
 }
@@ -182,6 +198,8 @@ static void ast_node_serialize_internal(const ast_node_t* node, FILE* stream) {
     }
     fprintf(stream, ")");
 }
+
+
 
 char* ast_node_serialize(const ast_node_t* node) {
     if (!node) return NULL;
