@@ -1,7 +1,7 @@
-# 1. Объявление данных:
+## 1. Объявление данных:
 DATA, CONSTANTS, TYPES, PARAMETERS, SELECT-OPTIONS, TABLES, FIELD-SYMBOLS, RANGES, DATA, FIELD-GROUPS
 
-2. Управление потоком:
+## 2. Управление потоком:
 IF, ELSE, ELSEIF, ENDIF, CASE, WHEN, OTHERWISE, ENDCASE, DO, WHILE, ENDDO, LOOP, ENDLOOP, EXIT, CONTINUE, CHECK, RETURN
 
 3. Операторы обработки:
