@@ -30,4 +30,8 @@ ast_node_t* parse_perform_endform(parser_t* parser);
 // parser_perform_using.c
 ast_node_t* parse_perform_parameters(parser_t* parser);
 
+// parser_perform_call.c
+ast_node_t* parse_perform_call(parser_t* parser);
+
+
 #endif // PARSER_PERFORM_H
