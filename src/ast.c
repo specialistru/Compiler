@@ -3,9 +3,29 @@
 #include <stdio.h>
 #include <string.h>
 
+// Проверка malloc/realloc
+static void* safe_malloc(size_t size) {
+    void* ptr = malloc(size);
+    if (!ptr) {
+        fprintf(stderr, "[AST ERROR] malloc failed for size %zu\n", size);
+        exit(EXIT_FAILURE);
+    }
+    return ptr;
+}
+
+// Проверка realloc
+static void* safe_realloc(void* ptr, size_t size) {
+    void* new_ptr = realloc(ptr, size);
+    if (!new_ptr && size != 0) {
+        fprintf(stderr, "[AST ERROR] realloc failed for size %zu\n", size);
+        exit(EXIT_FAILURE);
+    }
+    return new_ptr;
+}
+
 // Создание нового AST-узла
 ast_node_t* ast_node_create(ast_node_type_t type, token_t token) {
-    ast_node_t* node = malloc(sizeof(ast_node_t));
+    ast_node_t* node = (ast_node_t*)safe_malloc(sizeof(ast_node_t));
     node->type = type;
     node->token = token;
     node->children = NULL;
@@ -14,18 +34,22 @@ ast_node_t* ast_node_create(ast_node_type_t type, token_t token) {
 }
 
 // Добавление дочернего узла
-void ast_node_add_child(ast_node_t* parent, ast_node_t* child) {
-    if (!parent || !child) return;
-    parent->children = realloc(parent->children, sizeof(ast_node_t*) * (parent->child_count + 1));
+int ast_node_add_child(ast_node_t* parent, ast_node_t* child) {
+    if (!parent || !child) return -1;
+    size_t new_size = (parent->child_count + 1) * sizeof(ast_node_t*);
+    ast_node_t** new_children = (ast_node_t**)safe_realloc(parent->children, new_size);
+    if (!new_children) return -1;  // Безопасность, хотя safe_realloc вызовет exit
+    parent->children = new_children;
     parent->children[parent->child_count++] = child;
+    return 0;
 }
 
 // Освобождение AST
 void ast_node_free(ast_node_t* node) {
     if (!node) return;
-    for (int i = 0; i < node->child_count; ++i)
+    for (size_t i = 0; i < node->child_count; ++i) {
         ast_node_free(node->children[i]);
-
+    }
     free(node->children);
     lexer_free_token(&node->token);
     free(node);
@@ -129,7 +153,7 @@ static const char* ast_node_type_name(ast_node_type_t type) {
 }
 
 // Отладочная печать AST (для тестов)
-void ast_node_print(ast_node_t* node, int indent) {
+void ast_node_print(const ast_node_t* node, int indent) {
     if (!node) return;
 
     for (int i = 0; i < indent; i++) printf("  ");
@@ -139,7 +163,56 @@ void ast_node_print(ast_node_t* node, int indent) {
     }
     printf(")\n");
 
-    for (int i = 0; i < node->child_count; ++i) {
+    for (size_t i = 0; i < node->child_count; ++i) {
         ast_node_print(node->children[i], indent + 1);
     }
+}
+
+// Вспомогательная внутренняя функция сериализации в строку (рекурсивно)
+static void ast_node_serialize_internal(const ast_node_t* node, FILE* stream) {
+    if (!node) return;
+
+    fprintf(stream, "(%s", ast_node_type_name(node->type));
+    if (node->token.lexeme && strlen(node->token.lexeme) > 0) {
+        fprintf(stream, " \"%s\"", node->token.lexeme);
+    }
+    for (size_t i = 0; i < node->child_count; ++i) {
+        fprintf(stream, " ");
+        ast_node_serialize_internal(node->children[i], stream);
+    }
+    fprintf(stream, ")");
+}
+
+char* ast_node_serialize(const ast_node_t* node) {
+    if (!node) return NULL;
+
+    // Используем временный поток памяти
+    FILE* memstream = open_memstream(NULL, NULL);
+    if (!memstream) return NULL;
+
+    ast_node_serialize_internal(node, memstream);
+    fflush(memstream);
+
+    char* result = NULL;
+    size_t size = 0;
+    
+#if defined(__APPLE__)
+    // На macOS нужно извлекать внутренние данные из FILE* иначе
+    size = ftell(memstream);
+    fseek(memstream, 0, SEEK_SET);
+    result = malloc(size + 1);
+    if (result) fread(result, 1, size, memstream);
+    if (result) result[size] = 0;
+#else
+    // На Linux/glibc можно использовать getdelim
+    fseek(memstream, 0, SEEK_SET);
+    size_t len = 0;
+    ssize_t read_len = getdelim(&result, &len, EOF, memstream);
+    if (read_len < 0) {
+        free(result);
+        result = NULL;
+    }
+#endif
+    fclose(memstream);
+    return result;
 }
