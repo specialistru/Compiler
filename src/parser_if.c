@@ -1,52 +1,59 @@
-// parser_if.c
 #include "parser_if_condition.h"
-#include "parser_if_body.h"
+#include "parser_if_logical_ops.h"
+#include "parser_if_nested.h"
 #include "parser_if_elseif.h"
 #include "parser_if_else.h"
 #include "parser_if_end.h"
+#include "parser_if_body.h"
+#include "parser_if_error.h"
+
 #include "ast.h"
 #include "lexer.h"
-#include "parser.h"
 
-// Входная функция парсинга IF
-ast_node_t* parse_if(parser_t* parser) {
-    // Проверка ключевого слова IF и парсинг условия
-    ast_node_t* if_node = ast_node_create(AST_IF, parser_peek_token(parser));
-    if (!parse_if_condition(parser, if_node)) {
-        parser_error(parser, "Ошибка парсинга условия IF");
-        ast_node_free(if_node);
+// Основная функция парсинга конструкции IF
+ast_node_t* parse_if(token_stream_t *tokens) {
+    // Создаем узел IF
+    ast_node_t *if_node = ast_node_create(AST_IF, tokens->current_token);
+
+    // Парсим условие
+    ast_node_t *condition = parse_if_condition(tokens);
+    if (!condition) {
+        parse_if_error("Ошибка при разборе условия IF", tokens);
         return NULL;
     }
+    ast_node_add_child(if_node, condition);
 
-    // Парсинг тела IF
-    if (!parse_if_body(parser, if_node)) {
-        parser_error(parser, "Ошибка парсинга тела IF");
-        ast_node_free(if_node);
+    // Парсим тело IF
+    ast_node_t *body = parse_if_body(tokens);
+    if (!body) {
+        parse_if_error("Ошибка при разборе тела IF", tokens);
         return NULL;
     }
+    ast_node_add_child(if_node, body);
 
-    // Парсинг конструкции ELSEIF (0 или более)
-    while (parser_match_keyword(parser, "ELSEIF")) {
-        if (!parse_if_elseif(parser, if_node)) {
-            parser_error(parser, "Ошибка парсинга ELSEIF");
-            ast_node_free(if_node);
-            return NULL;
+    // Парсим ветвления ELSEIF / ELSE
+    while (tokens->current_token.type == TOKEN_ELSEIF || tokens->current_token.type == TOKEN_ELSE) {
+        if (tokens->current_token.type == TOKEN_ELSEIF) {
+            ast_node_t *elseif_node = parse_if_elseif(tokens);
+            if (!elseif_node) {
+                parse_if_error("Ошибка при разборе ELSEIF", tokens);
+                return NULL;
+            }
+            ast_node_add_child(if_node, elseif_node);
+        } else {
+            ast_node_t *else_node = parse_if_else(tokens);
+            if (!else_node) {
+                parse_if_error("Ошибка при разборе ELSE", tokens);
+                return NULL;
+            }
+            ast_node_add_child(if_node, else_node);
+            break; // ELSE - последняя ветка
         }
     }
 
-    // Парсинг конструкции ELSE (0 или 1)
-    if (parser_match_keyword(parser, "ELSE")) {
-        if (!parse_if_else(parser, if_node)) {
-            parser_error(parser, "Ошибка парсинга ELSE");
-            ast_node_free(if_node);
-            return NULL;
-        }
-    }
-
-    // Парсинг ENDIF
-    if (!parse_if_end(parser)) {
-        parser_error(parser, "Ожидался ENDIF");
-        ast_node_free(if_node);
+    // Проверяем ENDIF
+    if (!parse_if_end(tokens)) {
+        parse_if_error("Отсутствует ENDIF", tokens);
         return NULL;
     }
 
