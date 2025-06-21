@@ -1,6 +1,13 @@
 #ifndef SEMANTIC_H
 #define SEMANTIC_H
 
-int semantic_check(const char* class_name, const char* method_name);
+#include "ast.h"
 
-#endif
+typedef enum {
+    SEMANTIC_OK,
+    SEMANTIC_ERROR
+} semantic_result_t;
+
+semantic_result_t semantic_analyze(ast_node_t* root);
+
+#endif // SEMANTIC_H
