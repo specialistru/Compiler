@@ -1,22 +1,24 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#define MAX_TOKENS 1024
+#include <stdbool.h>
 
 typedef enum {
-    TOKEN_KEYWORD,
     TOKEN_IDENTIFIER,
+    TOKEN_NUMBER,
     TOKEN_STRING,
-    TOKEN_SYMBOL,
-    TOKEN_EOF
-} TokenType;
+    TOKEN_KEYWORD,
+    TOKEN_OPERATOR,
+    TOKEN_EOF,
+    TOKEN_UNKNOWN
+} token_type_t;
 
 typedef struct {
-    TokenType type;
-    char text[64];
-} Token;
+    token_type_t type;
+    char text[MAX_TOKEN_LEN];
+} token_t;
 
-int lex(const char* input, Token* tokens, int max_tokens);
+void lexer_init(const char* source);
+token_t lexer_next_token();
 
-#endif
-
+#endif // LEXER_H
