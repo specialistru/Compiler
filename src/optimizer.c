@@ -1,4 +1,5 @@
 #include "optimizer.h"
+#include "ir.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -14,3 +15,7 @@ int optimize(Instruction* code, int n) {
     return j;
 }
 
+// Простая заглушка — нет оптимизаций
+void optimizer_optimize() {
+    // Здесь можно сделать inline, устранение мертвого кода и пр.
+}
