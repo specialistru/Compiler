@@ -1,11 +1,4 @@
-#include "parser_if_condition.h"
-#include "parser_if_logical_ops.h"
-#include "parser_if_nested.h"
-#include "parser_if_elseif.h"
-#include "parser_if_else.h"
-#include "parser_if_end.h"
-#include "parser_if_body.h"
-#include "parser_if_error.h"
+#include "parser_if.h"
 
 #include "ast.h"
 #include "lexer.h"
