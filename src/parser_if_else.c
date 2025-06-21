@@ -1,15 +1,16 @@
-// parser_if_else.c
 #include "parser_if_else.h"
-#include "ast.h"
 #include "parser_if_body.h"
-#include "parser.h"
+#include "lexer.h"
+#include "ast.h"
 
-bool parse_if_else(parser_t* parser, ast_node_t* parent_node) {
-    token_t token = parser_previous_token(parser);
-    ast_node_t* else_node = ast_node_create(AST_ELSE, token);
+ast_node_t* parse_if_else(token_stream_t *tokens) {
+    if (tokens->current_token.type != TOKEN_ELSE) return NULL;
+    ast_node_t *else_node = ast_node_create(AST_ELSE, tokens->current_token);
+    token_advance(tokens);
 
-    if (!parse_if_body(parser, else_node)) return false;
+    ast_node_t *body = parse_if_body(tokens);
+    if (!body) return NULL;
+    ast_node_add_child(else_node, body);
 
-    ast_node_add_child(parent_node, else_node);
-    return true;
+    return else_node;
 }
