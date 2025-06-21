@@ -1,53 +1,94 @@
+#include "parser_if_complex_conditions.h"
 #include "parser_if.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-// Вспомогательная функция для парсинга выражений с поддержкой скобок и логических операторов
-// Пример: (a = b OR c = d) AND NOT e = f
-ast_node_t* parse_complex_condition(parser_t* parser) {
-    // Идея: рекурсивный спуск с поддержкой скобок
-    // Простая версия:
-    ast_node_t* node = NULL;
+// Вспомогательная функция для парсинга простого условия или вложенного выражения в скобках
+static ast_node_t* parse_condition_atom(parser_t* parser);
 
-    if (parser_match_token(parser, TOKEN_LPAREN)) {
-        // Вход в скобки
-        node = parse_complex_condition(parser);
-        if (!parser_match_token(parser, TOKEN_RPAREN)) {
-            parser_error(parser, "Expected closing parenthesis");
-            ast_node_free(node);
-            return NULL;
+// Парсинг сложных условий с приоритетом AND > OR
+ast_node_t* parse_if_complex_conditions(parser_t* parser) {
+    ast_node_t* left = parse_condition_atom(parser);
+    if (!left) return NULL;
+
+    while (true) {
+        token_t* tok = parser_peek_token(parser);
+        if (!tok) break;
+
+        // Проверяем логический оператор AND/OR
+        if (tok->type == TOKEN_AND || tok->type == TOKEN_OR) {
+            token_t op_token = *tok;
+            parser_next_token(parser); // съесть AND/OR
+
+            ast_node_t* right = parse_condition_atom(parser);
+            if (!right) {
+                parse_if_error("Expected condition after AND/OR", parser->tokens);
+                ast_node_free(left);
+                return NULL;
+            }
+
+            ast_node_t* bin_op = ast_node_create(AST_EXPR_BINARY_OP, op_token);
+            ast_node_add_child(bin_op, left);
+            ast_node_add_child(bin_op, right);
+            left = bin_op; // новый левый узел
+        } else {
+            break;
         }
-    } else if (parser_peek_token(parser)->type == TOKEN_NOT) {
-        parser_next_token(parser);
-        ast_node_t* operand = parse_complex_condition(parser);
-        if (!operand) return NULL;
-        node = ast_node_create(AST_EXPR_UNARY_OP, parser->current_token);
-        node->token.lexeme = strdup("NOT");
-        ast_node_add_child(node, operand);
-    } else {
-        // Базовое условие (идентификатор, оператор, значение)
-        node = parse_simple_condition(parser);
-        if (!node) return NULL;
     }
 
-    // Обработка AND/OR после условия
-    while (parser_peek_token(parser)->type == TOKEN_AND || parser_peek_token(parser)->type == TOKEN_OR) {
-        token_t op_token = parser_next_token(parser);
-        ast_node_t* right = parse_complex_condition(parser);
-        if (!right) {
-            ast_node_free(node);
-            return NULL;
-        }
-
-        ast_node_t* bin_op = ast_node_create(AST_EXPR_BINARY_OP, op_token);
-        ast_node_add_child(bin_op, node);
-        ast_node_add_child(bin_op, right);
-        node = bin_op;
-    }
-
-    return node;
+    return left;
 }
 
-// Здесь parse_simple_condition — парсит простое сравнение: идентификатор OP значение
-// Остальной код остался без изменений
+static ast_node_t* parse_condition_atom(parser_t* parser) {
+    token_t* tok = parser_peek_token(parser);
+    if (!tok) return NULL;
+
+    // Обработка NOT
+    if (tok->type == TOKEN_NOT) {
+        token_t not_token = *tok;
+        parser_next_token(parser);
+        ast_node_t* operand = parse_condition_atom(parser);
+        if (!operand) {
+            parse_if_error("Expected condition after NOT", parser->tokens);
+            return NULL;
+        }
+        ast_node_t* unary = ast_node_create(AST_EXPR_UNARY_OP, not_token);
+        ast_node_add_child(unary, operand);
+        return unary;
+    }
+
+    // Обработка скобок '(' <условие> ')'
+    if (tok->type == TOKEN_LPAREN) {
+        parser_next_token(parser); // съесть '('
+        ast_node_t* expr = parse_if_complex_conditions(parser);
+        if (!expr) {
+            parse_if_error("Expected expression after '('", parser->tokens);
+            return NULL;
+        }
+        tok = parser_peek_token(parser);
+        if (!tok || tok->type != TOKEN_RPAREN) {
+            parse_if_error("Expected ')' to close '('", parser->tokens);
+            ast_node_free(expr);
+            return NULL;
+        }
+        parser_next_token(parser); // съесть ')'
+        return expr;
+    }
+
+    // Простое условие (например, идентификатор или литерал)
+    if (tok->type == TOKEN_IDENTIFIER || tok->type == TOKEN_LITERAL) {
+        token_t simple_token = *tok;
+        parser_next_token(parser);
+        return ast_node_create(AST_EXPR_IDENTIFIER, simple_token);
+    }
+
+    // Если не распознано
+    parse_if_error("Unexpected token in condition", parser->tokens);
+    return NULL;
+}
+
+// Функция для вывода ошибки парсинга условия IF
+void parse_if_error(const char *message, token_stream_t *tokens) {
+    fprintf(stderr, "Parse error in IF condition: %s\n", message);
+    // Можно дополнительно вывести позицию в tokens
+}
