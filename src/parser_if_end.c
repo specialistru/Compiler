@@ -1,11 +1,9 @@
 // parser_if_end.c
 #include "parser_if_end.h"
-#include "parser.h"
+#include "lexer.h"
 
-bool parse_if_end(parser_t* parser) {
-    if (parser_match_keyword(parser, "ENDIF")) {
-        return true;
-    }
-    parser_error(parser, "Ожидался ENDIF для завершения конструкции IF");
-    return false;
+int parse_if_end(token_stream_t *tokens) {
+    if (tokens->current_token.type != TOKEN_ENDIF) return 0;
+    token_advance(tokens);
+    return 1;
 }
