@@ -1,13 +1,14 @@
 #ifndef AST_H
 #define AST_H
 
-#include "lexer.h"
+#include <stddef.h>
+#include "lexer.h"  // token_t
 
 typedef enum {
-    // Программа
+    // Корневой узел программы
     AST_PROGRAM,
 
-    // Объявления
+    // Объявления данных
     AST_DATA,
     AST_CONSTANTS,
     AST_PARAMETERS,
@@ -15,6 +16,8 @@ typedef enum {
     AST_TABLES,
     AST_TYPES,
     AST_RANGES,
+    AST_FIELD_SYMBOLS,       // Добавлено: поддержка FIELD-SYMBOLS
+    AST_FIELD_GROUPS,        // Добавлено: для FIELD-GROUPS
 
     // Управляющие конструкции
     AST_IF,
@@ -35,7 +38,7 @@ typedef enum {
     AST_CHECK,
     AST_RETURN,
 
-    // Вызовы и процедуры
+    // Вызовы
     AST_PERFORM,
     AST_CALL_FUNCTION,
     AST_CALL_METHOD,
@@ -48,7 +51,7 @@ typedef enum {
     AST_MODULE,
     AST_ENDMODULE,
 
-    // Классы / интерфейсы / методы
+    // ООП
     AST_CLASS_DEF,
     AST_ENDCLASS,
     AST_METHOD_DEF,
@@ -64,16 +67,7 @@ typedef enum {
     AST_RAISE,
     AST_RAISE_EXCEPTION,
 
-    // Выражения и операции
-    AST_ASSIGNMENT,
-    AST_EXPR_BINARY_OP,
-    AST_EXPR_UNARY_OP,
-    AST_EXPR_LITERAL,
-    AST_EXPR_IDENTIFIER,
-    AST_EXPR_FUNCTION_CALL,
-    AST_EXPR_METHOD_CALL,
-
-    // Работа с таблицами
+    // Работа с таблицами и SELECT
     AST_SELECT,
     AST_SELECT_SINGLE,
     AST_ENDSELECT,
@@ -83,7 +77,10 @@ typedef enum {
     AST_DELETE_TABLE,
     AST_INSERT_TABLE,
 
-    // Специальные
+    // WHERE-условия (добавлено)
+    AST_WHERE,
+
+    // Специальные инструкции
     AST_EXPORT,
     AST_IMPORT,
     AST_MEMORY_ID,
@@ -93,31 +90,41 @@ typedef enum {
     AST_CREATE_OBJECT,
     AST_FREE_OBJECT,
 
-    // Ошибка или нераспознанный узел
-    AST_UNKNOWN
+    // Выражения
+    AST_ASSIGNMENT,
+    AST_EXPR_BINARY_OP,
+    AST_EXPR_UNARY_OP,
+    AST_EXPR_LITERAL,
+    AST_EXPR_IDENTIFIER,
+    AST_EXPR_FUNCTION_CALL,
+    AST_EXPR_METHOD_CALL,
 
+    AST_UNKNOWN
 } ast_node_type_t;
 
-// AST-узел
 typedef struct ast_node {
     ast_node_type_t type;
-    token_t token;                // основной токен (например, ключевое слово или имя)
-    struct ast_node** children;   // массив дочерних узлов
-    int child_count;
+    token_t token;                  // Лексема, где начинается узел (можно расширить на позицию окончания)
+    struct ast_node** children;
+    size_t child_count;
 } ast_node_t;
 
-// === Интерфейс ===
-
-// Создание нового AST-узла
+// Создание узла
 ast_node_t* ast_node_create(ast_node_type_t type, token_t token);
 
 // Добавление дочернего узла
-void        ast_node_add_child(ast_node_t* parent, ast_node_t* child);
+int ast_node_add_child(ast_node_t* parent, ast_node_t* child);
 
-// Освобождение AST
-void        ast_node_free(ast_node_t* node);
+// Освобождение дерева
+void ast_node_free(ast_node_t* node);
 
-// Отладочная печать AST (для тестов)
-void        ast_node_print(ast_node_t* node, int indent); // отладочная печать
+// Получение человекочитаемого имени узла
+const char* ast_node_type_name(ast_node_type_t type);
+
+// Печать дерева для отладки
+void ast_node_print(const ast_node_t* node, int indent);
+
+// Сериализация AST в строку (для тестов)
+char* ast_node_serialize(const ast_node_t* node);
 
 #endif // AST_H
