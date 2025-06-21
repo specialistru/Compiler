@@ -1,21 +1,22 @@
-// parser_if_elseif.c
 #include "parser_if_elseif.h"
-#include "ast.h"
 #include "parser_if_condition.h"
 #include "parser_if_body.h"
-#include "parser.h"
+#include "lexer.h"
+#include "ast.h"
 
-bool parse_if_elseif(parser_t* parser, ast_node_t* parent_node) {
-    // Создаем узел ELSEIF
-    token_t token = parser_previous_token(parser);
-    ast_node_t* elseif_node = ast_node_create(AST_ELSEIF, token);
+// парсинг ELSEIF
+ast_node_t* parse_if_elseif(token_stream_t *tokens) {
+    if (tokens->current_token.type != TOKEN_ELSEIF) return NULL;
+    ast_node_t *elseif_node = ast_node_create(AST_ELSEIF, tokens->current_token);
+    token_advance(tokens);
 
-    // Парсим условие ELSEIF
-    if (!parse_if_condition(parser, elseif_node)) return false;
+    ast_node_t *condition = parse_if_condition(tokens);
+    if (!condition) return NULL;
+    ast_node_add_child(elseif_node, condition);
 
-    // Парсим тело ELSEIF
-    if (!parse_if_body(parser, elseif_node)) return false;
+    ast_node_t *body = parse_if_body(tokens);
+    if (!body) return NULL;
+    ast_node_add_child(elseif_node, body);
 
-    ast_node_add_child(parent_node, elseif_node);
-    return true;
+    return elseif_node;
 }
