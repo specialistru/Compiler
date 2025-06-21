@@ -1,22 +1,26 @@
-#include "parser_if_logical_ops.h"
-#include "lexer.h"
-#include "ast.h"
+#include "parser_if.h"
 
-// Парсинг логических операций AND/OR в условиях
-ast_node_t* parse_if_logical_ops(token_stream_t *tokens, ast_node_t *left) {
-    while (tokens->current_token.type == TOKEN_AND || tokens->current_token.type == TOKEN_OR) {
-        token_type_t op_type = tokens->current_token.type;
-        token_advance(tokens);
+// Вспомогательная функция для парсинга логических выражений (AND/OR)
+ast_node_t* parse_logical_expression(parser_t* parser) {
+    ast_node_t* left = parse_simple_condition(parser);
+    if (!left) return NULL;
 
-        ast_node_t *right = parse_if_condition(tokens);
-        if (!right) return NULL;
-
-        ast_node_t *bin_op = ast_node_create(AST_EXPR_BINARY_OP, tokens->current_token);
-        bin_op->token.type = op_type;
-        ast_node_add_child(bin_op, left);
-        ast_node_add_child(bin_op, right);
-
-        left = bin_op;
+    while (true) {
+        token_t* token = parser_peek_token(parser);
+        if (token->type == TOKEN_AND || token->type == TOKEN_OR) {
+            token_t op_token = parser_next_token(parser);
+            ast_node_t* right = parse_simple_condition(parser);
+            if (!right) {
+                ast_node_free(left);
+                return NULL;
+            }
+            ast_node_t* bin_op = ast_node_create(AST_EXPR_BINARY_OP, op_token);
+            ast_node_add_child(bin_op, left);
+            ast_node_add_child(bin_op, right);
+            left = bin_op;
+        } else {
+            break;
+        }
     }
     return left;
 }
