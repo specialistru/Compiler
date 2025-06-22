@@ -60,8 +60,56 @@ ast_node_t* parse_class_method_definition(parser_context_t* ctx) {
 #include <stdio.h>
 #include <stdlib.h>
 
-// Парсинг параметров метода (в круглых скобках)
-ast_node_t* parse_method_parameters(parser_context_t* ctx);
+// Парсинг одного параметра (имя и тип, например: iv_name TYPE string)
+static ast_node_t* parse_method_parameter(parser_context_t* ctx) {
+    // Ожидаем идентификатор — имя параметра
+    if (ctx->current.type != TOKEN_IDENTIFIER) {
+        fprintf(stderr, "[PARSER ERROR] Ожидалось имя параметра, но найдено: %s\n", ctx->current.lexeme);
+        return NULL;
+    }
+    token_t param_name = ctx->current;
+    parser_advance(ctx);
+
+    ast_node_t* param_node = ast_node_create(AST_PARAMETER, param_name);
+
+    // Опционально — ключевое слово TYPE и тип параметра
+    if (parser_match(ctx, TOKEN_KEYWORD, "TYPE")) {
+        if (ctx->current.type != TOKEN_IDENTIFIER) {
+            fprintf(stderr, "[PARSER ERROR] Ожидался тип параметра после TYPE\n");
+            ast_node_destroy(param_node);
+            return NULL;
+        }
+        ast_node_t* type_node = ast_node_create(AST_TYPE, ctx->current);
+        parser_advance(ctx);
+        ast_node_add_child(param_node, type_node);
+    }
+
+    return param_node;
+}
+
+// Парсинг списка параметров метода в скобках
+ast_node_t* parse_method_parameters(parser_context_t* ctx) {
+    ast_node_t* params_list_node = ast_node_create(AST_PARAMETER_LIST, (token_t){0});
+
+    while (ctx->current.type != TOKEN_SYMBOL || ctx->current.lexeme[0] != ')') {
+        ast_node_t* param_node = parse_method_parameter(ctx);
+        if (!param_node) {
+            ast_node_destroy(params_list_node);
+            return NULL;
+        }
+        ast_node_add_child(params_list_node, param_node);
+
+        // Если следующий токен — запятая, пропускаем ее и продолжаем
+        if (parser_match(ctx, TOKEN_SYMBOL, ",")) {
+            continue;
+        } else {
+            // Иначе ожидаем закрывающую скобку или конец параметров
+            break;
+        }
+    }
+
+    return params_list_node;
+}
 
 // Парсинг определения метода (сигнатура без тела)
 ast_node_t* parse_class_method_def(parser_context_t* ctx) {
