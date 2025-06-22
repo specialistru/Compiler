@@ -47,7 +47,6 @@ ast_node_t* parse_expression_logical(parser_context_t* ctx, int precedence) {
 
     return left;
 }
-*/
 
 #include "parser_expression.h"
 #include <stdio.h>
@@ -98,4 +97,82 @@ ast_node_t* parse_expression_logical(parser_context_t* ctx) {
     }
 
     return left;
+}
+*/
+
+// parser_expression_logical.c
+#include "parser_expression.h"
+#include "parser_utils.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+// Функция для разбора логического выражения
+// Поддерживает операторы AND, OR, NOT с правильным приоритетом
+
+static ast_node_t* parse_logical_not(parser_context_t* ctx);
+static ast_node_t* parse_logical_and(parser_context_t* ctx);
+static ast_node_t* parse_logical_or(parser_context_t* ctx);
+
+// Парсим выражение с оператором NOT
+static ast_node_t* parse_logical_not(parser_context_t* ctx) {
+    if (parser_match(ctx, TOKEN_OPERATOR, "NOT")) {
+        token_t op_token = ctx->previous;
+        ast_node_t* operand = parse_logical_not(ctx);  // Рекурсивно парсим дальше
+        if (!operand) {
+            fprintf(stderr, "[PARSER ERROR] Ожидался операнд после NOT\n");
+            exit(EXIT_FAILURE);
+        }
+        ast_node_t* node = ast_node_create(AST_EXPR_UNARY_OP, op_token);
+        ast_node_add_child(node, operand);
+        return node;
+    }
+    // Если NOT нет, пытаемся распарсить базовое логическое выражение (например, скобки, переменные)
+    return parse_expression_primary(ctx);
+}
+
+// Парсим выражение с операторами AND
+static ast_node_t* parse_logical_and(parser_context_t* ctx) {
+    ast_node_t* left = parse_logical_not(ctx);
+    if (!left) return NULL;
+
+    while (parser_match(ctx, TOKEN_OPERATOR, "AND")) {
+        token_t op_token = ctx->previous;
+        ast_node_t* right = parse_logical_not(ctx);
+        if (!right) {
+            fprintf(stderr, "[PARSER ERROR] Ожидался операнд после AND\n");
+            exit(EXIT_FAILURE);
+        }
+        ast_node_t* node = ast_node_create(AST_EXPR_BINARY_OP, op_token);
+        ast_node_add_child(node, left);
+        ast_node_add_child(node, right);
+        left = node;  // Обновляем левый операнд для дальнейших цепочек
+    }
+
+    return left;
+}
+
+// Парсим выражение с операторами OR
+static ast_node_t* parse_logical_or(parser_context_t* ctx) {
+    ast_node_t* left = parse_logical_and(ctx);
+    if (!left) return NULL;
+
+    while (parser_match(ctx, TOKEN_OPERATOR, "OR")) {
+        token_t op_token = ctx->previous;
+        ast_node_t* right = parse_logical_and(ctx);
+        if (!right) {
+            fprintf(stderr, "[PARSER ERROR] Ожидался операнд после OR\n");
+            exit(EXIT_FAILURE);
+        }
+        ast_node_t* node = ast_node_create(AST_EXPR_BINARY_OP, op_token);
+        ast_node_add_child(node, left);
+        ast_node_add_child(node, right);
+        left = node;
+    }
+
+    return left;
+}
+
+// Внешняя функция для разбора логических выражений
+ast_node_t* parse_expression_logical(parser_context_t* ctx) {
+    return parse_logical_or(ctx);
 }
