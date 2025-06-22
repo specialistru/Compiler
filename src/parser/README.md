@@ -12,7 +12,7 @@ src/parser/
 ├── parser_call_function.c / .h     ## CALL FUNCTION
 ├── parser_class.c / .h             ## CLASS / ENDCLASS
 ├── parser_method.c / .h            ## METHOD / ENDMETHOD
-├── parser_loop.c / .h              # LOOP, ENDLOOP, LOOP AT, SELECT, etc.
+├── parser_loop.c / .h              ## LOOP, ENDLOOP, LOOP AT, SELECT, etc.
 ├── parser_expression.c / .h        # Выражения
 ├── parser_assignment.c / .h        # Присваивания
 ├── parser_form.c / .h              # FORM / ENDFORM
