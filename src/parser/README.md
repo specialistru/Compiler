@@ -6,11 +6,11 @@ src/parser/
 ├── parser.h                         # Главный интерфейс парсера
 ├── parser.c                         # Основной управляющий код
 │
-├── parser_data.c / .h              # Конструкция DATA
-├── parser_if.c / .h                # Конструкция IF / ELSE / ENDIF
-├── parser_perform.c / .h           # PERFORM
-├── parser_call_function.c / .h     # CALL FUNCTION
-├── parser_class.c / .h             # CLASS / ENDCLASS
+├── parser_data.c / .h              ## Конструкция DATA
+├── parser_if.c / .h                ## Конструкция IF / ELSE / ENDIF
+├── parser_perform.c / .h           ## PERFORM
+├── parser_call_function.c / .h     ## CALL FUNCTION
+├── parser_class.c / .h             ## CLASS / ENDCLASS
 ├── parser_method.c / .h            # METHOD / ENDMETHOD
 ├── parser_loop.c / .h              # LOOP, ENDLOOP, LOOP AT, SELECT, etc.
 ├── parser_expression.c / .h        # Выражения
