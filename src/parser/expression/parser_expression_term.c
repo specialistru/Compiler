@@ -47,7 +47,7 @@ ast_node_t* parse_expression_term(parser_context_t* ctx) {
     fprintf(stderr, "[PARSER ERROR] Ожидалось выражение, но найдено: %s\n", token.lexeme);
     return NULL;
 }
-*/
+
 
 #include "parser_expression.h"
 #include <stdio.h>
@@ -88,4 +88,62 @@ ast_node_t* parse_expression_term(parser_context_t* ctx) {
 
     fprintf(stderr, "[PARSER ERROR] Ожидалось выражение, но найдено: '%s'\n", token.lexeme);
     return NULL;
+}
+*/
+
+#include "parser_expression.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Функция парсинга терминов — базовых элементов выражения:
+// идентификаторы, константы, скобочные выражения
+ast_node_t* parse_expression_term(parser_context_t* ctx) {
+    ast_node_t* node = NULL;
+
+    switch (ctx->current.type) {
+        case TOKEN_IDENTIFIER:
+            // Создаем узел идентификатора
+            node = ast_node_create(AST_EXPR_IDENTIFIER, ctx->current);
+            parser_next_token(ctx); // Сдвигаемся к следующему токену
+            break;
+
+        case TOKEN_NUMBER:
+        case TOKEN_STRING:
+            // Константа (число или строка)
+            node = ast_node_create(AST_EXPR_CONSTANT, ctx->current);
+            parser_next_token(ctx);
+            break;
+
+        case TOKEN_SYMBOL:
+            if (strcmp(ctx->current.lexeme, "(") == 0) {
+                // Скобочное выражение
+                parser_next_token(ctx); // съедаем '('
+
+                node = parse_expression_operation(ctx); // рекурсивно парсим внутреннее выражение
+
+                if (!node) {
+                    fprintf(stderr, "[PARSER ERROR] Ожидалось выражение после '('\n");
+                    return NULL;
+                }
+
+                if (strcmp(ctx->current.lexeme, ")") != 0) {
+                    fprintf(stderr, "[PARSER ERROR] Ожидалась закрывающая скобка ')'\n");
+                    ast_node_destroy(node);
+                    return NULL;
+                }
+                parser_next_token(ctx); // съедаем ')'
+            }
+            else {
+                fprintf(stderr, "[PARSER ERROR] Ожидался термин, найден символ '%s'\n", ctx->current.lexeme);
+                return NULL;
+            }
+            break;
+
+        default:
+            fprintf(stderr, "[PARSER ERROR] Ожидался термин, найден токен типа %d\n", ctx->current.type);
+            return NULL;
+    }
+
+    return node;
 }
