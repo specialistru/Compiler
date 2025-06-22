@@ -1,9 +1,6 @@
 ## ✅ **Общая структура каталогов**
 
 ```
-
-
-```
 ├── parser_if.c / .h                ## Конструкция IF / ELSE / ENDIF
 ├── parser_perform.c / .h           ## PERFORM
 ├── parser_call_function.c / .h     ## CALL FUNCTION
