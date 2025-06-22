@@ -45,3 +45,46 @@ ast_node_t* parse_loop_do(parser_context_t* ctx) {
 
     return do_node;
 }
+
+/*
+
+#include "parser_loop_do.h"
+#include "parser.h"
+#include "ast.h"
+#include <stdio.h>
+
+// Функция разбора конструкции DO ... ENDDO
+ast_node_t* parse_loop_do(parser_context_t* ctx) {
+    if (!parser_match(ctx, TOKEN_KEYWORD, "DO")) {
+        fprintf(stderr, "[PARSER ERROR] Ожидался ключевой слово 'DO', найдено: %s\n", ctx->current.lexeme);
+        return NULL;
+    }
+
+    token_t do_token = ctx->previous;
+    ast_node_t* do_node = ast_node_create(AST_LOOP_DO, do_token);
+
+    // Опционально: тело цикла
+    ast_node_t* body = parse_loop_body(ctx);
+    if (!body) {
+        fprintf(stderr, "[PARSER ERROR] Ошибка при разборе тела цикла DO\n");
+        ast_node_free(do_node);
+        return NULL;
+    }
+    ast_node_add_child(do_node, body);
+
+    // Проверка закрывающего ENDDO
+    if (!parser_match(ctx, TOKEN_KEYWORD, "ENDDO")) {
+        fprintf(stderr, "[PARSER ERROR] Ожидался 'ENDDO' после тела цикла DO\n");
+        ast_node_free(do_node);
+        return NULL;
+    }
+
+    // Опционально: условие выхода (WHILE/UNTIL) может идти после ENDDO
+    // Если нужно - сюда можно добавить разбор условия, например:
+    // if (parser_match(ctx, TOKEN_KEYWORD, "WHILE") || parser_match(ctx, TOKEN_KEYWORD, "UNTIL")) { ... }
+
+    return do_node;
+}
+
+
+*/
