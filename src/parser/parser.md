@@ -85,3 +85,155 @@
 | parser\_special\_authority\_check.c     | special        | AUTHORITY-CHECK               | `AUTHORITY-CHECK OBJECT obj.`                   | ✅      | Работает                                 |
 | parser\_special\_message.c              | special        | MESSAGE                       | `MESSAGE 'Msg' TYPE 'S'.`                       | ✅      | Работает                                 |
 
+## 🗃️ Итоговый список модулей и файлов
+
+### 1. **if** – Управляющая конструкция `IF` и её вариации
+
+* parser\_if\_simple.c
+* parser\_if\_nested.c
+* parser\_if\_elseif.c
+* parser\_if\_else.c
+* parser\_if\_endif.c
+* parser\_if\_logical\_ops.c
+* parser\_if\_not.c
+* parser\_if\_bracketed.c
+* parser\_if\_errors.c
+* parser\_if\_multilevel\_elseif\_else.c
+* parser\_if\_deep\_elseif.c
+* parser\_if\_complex\_conditions.c
+* parser\_if\_body.c
+* parser\_if\_complex\_body.c
+
+### 2. **perform** – Вызов подпрограмм `PERFORM`
+
+* parser\_perform\_simple.c
+* parser\_perform\_nested.c
+* parser\_perform\_logical\_ops.c
+* parser\_perform\_and\_or.c
+* parser\_perform\_not.c
+* parser\_perform\_elseif.c
+* parser\_perform\_else.c
+* parser\_perform\_bracketed.c
+* parser\_perform\_complex.c
+* parser\_perform\_errors.c
+
+### 3. **call\_function** – Вызовы `CALL FUNCTION`
+
+* parser\_call\_function\_simple.c
+* parser\_call\_function\_dynamic.c
+* parser\_call\_function\_exceptions.c
+* parser\_call\_function\_bracketed.c
+* parser\_call\_function\_complex.c
+
+### 4. **class** – Определение классов и интерфейсов
+
+* parser\_class\_def.c
+* parser\_class\_attributes.c
+* parser\_class\_interface.c
+* parser\_class\_method\_def.c
+* parser\_class\_method\_impl.c
+* parser\_class\_simple.c
+* parser\_class\_visibility.c
+* parser\_class\_implementation.c
+* parser\_class\_endinterface.c
+* parser\_class\_endclass.c
+* parser\_class\_errors.c
+
+### 5. **method** – Реализация методов внутри классов
+
+* parser\_method\_definition.c
+* parser\_method\_implementation.c
+* parser\_method\_visibility.c
+* parser\_method\_error.c
+
+### 6. **loop** – Циклические конструкции
+
+* parser\_loop\_loop.c
+* parser\_loop\_do.c
+* parser\_loop\_while.c
+* parser\_loop\_other\_construct.c
+
+### 7. **expression** – Все виды выражений
+
+* parser\_expression\_literal.c
+* parser\_expression\_identifier.c
+* parser\_expression\_operator.c
+* parser\_expression\_variable.c
+* parser\_expression\_bracket.c
+* parser\_expression\_function\_call.c
+* parser\_expression\_ternary.c
+* parser\_expression\_conditional.c
+* parser\_expression\_assignment.c
+* parser\_expression\_array\_access.c
+* parser\_expression\_logical.c
+* parser\_expression\_complex.c
+
+### 8. **assignment** – Присвоение и его вариации
+
+* parser\_assignment\_simple.c
+* parser\_assignment\_chain.c
+* parser\_assignment\_complex.c
+
+### 9. **form** – Подпрограммы `FORM ... ENDFORM`
+
+* parser\_form\_simple.c
+* parser\_form\_complex.c
+* parser\_form\_syntax\_error.c
+
+### 10. **module** – Обработка экранных модулей
+
+* parser\_module\_simple.c
+* parser\_module\_complex.c
+* parser\_module\_chain\_and\_field.c
+
+### 11. **try** – Обработка исключений `TRY ... ENDTRY`
+
+* parser\_try\_simple.c
+* parser\_try\_catch.c
+* parser\_try\_cleanup.c
+* parser\_try\_nested.c
+* parser\_try\_errors.c
+
+### 12. **select** – SQL-запросы
+
+* parser\_select\_simple.c
+* parser\_select\_into\_table.c
+* parser\_select\_join.c
+* parser\_select\_where.c
+* parser\_select\_endselect.c
+
+### 13. **table\_ops** – Работа с внутренними таблицами
+
+* parser\_table\_ops\_append.c
+* parser\_table\_ops\_insert.c
+* parser\_table\_ops\_delete.c
+* parser\_table\_ops\_modify.c
+* parser\_table\_ops\_read.c
+* parser\_table\_ops\_sort.c
+
+### 14. **declarations** – Различные объявления
+
+* parser\_declarations\_data.c
+* parser\_declarations\_constants.c
+* parser\_declarations\_parameters.c
+* parser\_declarations\_types.c
+* parser\_declarations\_field\_symbols.c
+* parser\_declarations\_select\_options.c
+* parser\_declarations\_ranges.c
+
+### 15. **control** – Управляющие инструкции
+
+* parser\_control\_exit.c
+* parser\_control\_continue.c
+* parser\_control\_check.c
+* parser\_control\_return.c
+* parser\_control\_auth\_check.c
+
+### 16. **special** – Специальные конструкции
+
+* parser\_special\_export\_import.c
+* parser\_special\_memory\_id.c
+* parser\_special\_set\_get\_parameter.c
+* parser\_special\_free\_create\_object.c
+* parser\_special\_authority\_check.c
+* parser\_special\_message.c
