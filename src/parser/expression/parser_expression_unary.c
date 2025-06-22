@@ -1,3 +1,4 @@
+/*
 #include "parser_expression.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,5 +35,44 @@ ast_node_t* parse_expression_unary(parser_context_t* ctx) {
     }
 
     // Если не унарный оператор — разбираем дальше, например базовые выражения
+    return parse_expression_primary(ctx);
+}
+*/
+
+#include "parser_expression.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Разбор унарного выражения
+ast_node_t* parse_expression_unary(parser_context_t* ctx) {
+    token_t token = ctx->current;
+
+    // Проверяем, является ли текущий токен унарным оператором
+    if (token.type == TOKEN_SYMBOL && (strcmp(token.lexeme, "-") == 0 || strcmp(token.lexeme, "+") == 0)) {
+        parser_next_token(ctx); // consume unary operator
+        ast_node_t* operand = parse_expression_unary(ctx);
+        if (!operand) {
+            fprintf(stderr, "[PARSER ERROR] Ожидалось выражение после унарного оператора '%s'\n", token.lexeme);
+            return NULL;
+        }
+        ast_node_t* node = ast_node_create(AST_EXPR_UNARY_OP, token);
+        ast_node_add_child(node, operand);
+        return node;
+    }
+
+    if (token.type == TOKEN_KEYWORD && strcmp(token.lexeme, "NOT") == 0) {
+        parser_next_token(ctx); // consume NOT
+        ast_node_t* operand = parse_expression_unary(ctx);
+        if (!operand) {
+            fprintf(stderr, "[PARSER ERROR] Ожидалось выражение после оператора NOT\n");
+            return NULL;
+        }
+        ast_node_t* node = ast_node_create(AST_EXPR_UNARY_OP, token);
+        ast_node_add_child(node, operand);
+        return node;
+    }
+
+    // Если нет унарного оператора, переходим к разбору первичного выражения
     return parse_expression_primary(ctx);
 }
