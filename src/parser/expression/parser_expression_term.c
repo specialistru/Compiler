@@ -1,3 +1,4 @@
+/*
 #include "parser_expression.h"
 #include <stdio.h>
 
@@ -44,5 +45,47 @@ ast_node_t* parse_expression_term(parser_context_t* ctx) {
 
     // Ошибка: неожиданный токен
     fprintf(stderr, "[PARSER ERROR] Ожидалось выражение, но найдено: %s\n", token.lexeme);
+    return NULL;
+}
+*/
+
+#include "parser_expression.h"
+#include <stdio.h>
+#include <string.h>
+
+// Парсинг элементарного термина выражения
+ast_node_t* parse_expression_term(parser_context_t* ctx) {
+    token_t token = ctx->current;
+
+    switch (token.type) {
+        case TOKEN_IDENTIFIER:
+            parser_next_token(ctx);
+            return ast_node_create(AST_EXPR_IDENTIFIER, token);
+
+        case TOKEN_NUMBER:
+            parser_next_token(ctx);
+            return ast_node_create(AST_EXPR_NUMBER, token);
+
+        case TOKEN_STRING:
+            parser_next_token(ctx);
+            return ast_node_create(AST_EXPR_STRING, token);
+
+        case TOKEN_SYMBOL:
+            if (strcmp(token.lexeme, "(") == 0) {
+                parser_next_token(ctx);  // Пропустить '('
+                ast_node_t* expr = parse_expression(ctx);
+                if (!parser_expect(ctx, TOKEN_SYMBOL, ")")) {
+                    fprintf(stderr, "[PARSER ERROR] Ожидалась закрывающая скобка ')'\n");
+                    return NULL;
+                }
+                return expr;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    fprintf(stderr, "[PARSER ERROR] Ожидалось выражение, но найдено: '%s'\n", token.lexeme);
     return NULL;
 }
