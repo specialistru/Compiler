@@ -1,4 +1,5 @@
 // parser_class_definition.c — Парсинг CLASS ... DEFINITION.
+/*
 #include "parser_class.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,4 +68,57 @@ ast_node_t* parse_class_definition(parser_context_t* ctx) {
     }
 
     return class_node;
+}
+*/
+
+// parser_class_definition.c
+// Парсинг тела класса — раздела определения (definition section)
+
+#include "parser_class.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+// Основная функция парсинга тела класса
+ast_node_t* parse_class_definition(parser_context_t* ctx) {
+    // Проверяем, что текущий токен — начало определения класса
+    if (!(parser_match(ctx, TOKEN_KEYWORD, "DEFINITION") ||
+          parser_match(ctx, TOKEN_KEYWORD, "PUBLIC") ||
+          parser_match(ctx, TOKEN_KEYWORD, "PRIVATE") ||
+          parser_match(ctx, TOKEN_KEYWORD, "PROTECTED"))) {
+        fprintf(stderr, "[PARSER ERROR] Ожидалась секция определения класса (DEFINITION/PUBLIC/PRIVATE/PROTECTED)\n");
+        return NULL;
+    }
+
+    ast_node_t* class_def_node = ast_node_create(AST_CLASS_BODY, ctx->previous);
+
+    // Парсим содержимое класса: методы, атрибуты, внутренние классы
+    while (!parser_match(ctx, TOKEN_KEYWORD, "ENDCLASS") &&
+           ctx->current.type != TOKEN_EOF) {
+        ast_node_t* member_node = NULL;
+
+        if (parser_check(ctx, TOKEN_KEYWORD, "METHOD")) {
+            member_node = parse_class_method(ctx);
+        } else if (parser_check(ctx, TOKEN_KEYWORD, "DATA") ||
+                   parser_check(ctx, TOKEN_KEYWORD, "FIELD-SYMBOLS")) {
+            member_node = parse_class_attributes(ctx);
+        } else if (parser_check(ctx, TOKEN_KEYWORD, "CLASS")) {
+            member_node = parse_class_def(ctx); // Вложенный класс
+        } else {
+            fprintf(stderr, "[PARSER ERROR] Неожиданный токен в теле класса: %s\n", ctx->current.lexeme);
+            parser_advance(ctx); // Пропускаем ошибочный токен
+            continue;
+        }
+
+        if (member_node) {
+            ast_node_add_child(class_def_node, member_node);
+        }
+    }
+
+    if (!parser_match(ctx, TOKEN_KEYWORD, "ENDCLASS")) {
+        fprintf(stderr, "[PARSER ERROR] Ожидалось ключевое слово ENDCLASS для завершения определения класса\n");
+        ast_node_destroy(class_def_node);
+        return NULL;
+    }
+
+    return class_def_node;
 }
