@@ -59,6 +59,26 @@ ast_node_t* parse_class_method_definition(parser_context_t* ctx) {
         return NULL;
     }
 
+
+ast_node_t* parse_method_parameters(parser_context_t* ctx) {
+    ast_node_t* params_node = ast_node_create(AST_METHOD_PARAMETERS, ctx->current);
+
+    // Пример: парсим список идентификаторов параметров
+    while (ctx->current.type == TOKEN_IDENTIFIER) {
+        token_t param_token = ctx->current;
+        parser_advance(ctx);
+
+        ast_node_t* param_node = ast_node_create(AST_EXPR_IDENTIFIER, param_token);
+        ast_node_add_child(params_node, param_node);
+
+        if (!parser_match(ctx, TOKEN_SYMBOL, ",")) {
+            break;
+        }
+    }
+
+    return params_node;
+}
+
 /*
 // parser_class_method_declaration.c — парсинг объявления метода класса
 #include "parser_class.h"
