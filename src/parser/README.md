@@ -1,12 +1,9 @@
 ## ✅ **Общая структура каталогов**
 
 ```
-src/parser/
-│
-├── parser.h                         # Главный интерфейс парсера
-├── parser.c                         # Основной управляющий код
-│
-├── parser_data.c / .h              ## Конструкция DATA
+
+
+```
 ├── parser_if.c / .h                ## Конструкция IF / ELSE / ENDIF
 ├── parser_perform.c / .h           ## PERFORM
 ├── parser_call_function.c / .h     ## CALL FUNCTION
@@ -23,6 +20,124 @@ src/parser/
 ├── parser_declarations.c / .h      # PARAMETERS, TYPES, CONSTANTS, FIELD-SYMBOLS, etc.
 ├── parser_control.c / .h           # CASE, DO, WHILE, CHECK, CONTINUE, EXIT
 ├── parser_special.c / .h           # AUTHORITY-CHECK, SET PARAMETER, GET PARAMETER
+```
+
+```
+Compiler/
+│
+├── include/                     # Заголовочные файлы (.h)
+│   ├── parser_data.h
+│   ├── parser_perform.h
+│   ├── parser_call.h
+│   ├── parser_class.h
+│   ├── parser_method.h
+│   ├── parser_loop.h
+│   ├── parser_expression.h
+│   └── parser_common.h           # Общие типы, структуры, утилиты
+│
+├── src/                          # Исходные файлы (.c)
+│   ├── data/                     ## Конструкция DATA
+│   │   ├── parser_data_value_assignment.c
+│   │   ├── parser_data_initialization.c
+│   │   ├── parser_data_complex_types.c
+│   │   ├── parser_data_constants_value.c
+│   │   ├── parser_data_parameters.c
+│   │   ├── parser_data_field_symbols.c
+│   │   ├── parser_data_select_options.c
+│   │   ├── parser_data_ranges.c
+│   │
+│   ├── perform/
+│   │   ├── parser_perform_nested.c
+│   │   ├── parser_perform_logical_ops.c
+│   │   ├── parser_perform_syntax_error.c
+│   │   ├── parser_perform_complex.c
+│   │   ├── parser_perform_and_or.c
+│   │   ├── parser_perform_errors.c
+│   │   ├── parser_perform_elseif.c
+│   │   ├── parser_perform_else.c
+│   │   ├── parser_perform_not.c
+│   │   ├── parser_perform_bracketed.c
+│   │   ├── parser_perform_deep_nested.c
+│   │   ├── parser_perform_complex_body.c
+│   │
+│   ├── call/
+│   │   ├── parser_call_complex.c
+│   │   ├── parser_call_dynamic.c
+│   │   ├── parser_call_exceptions.c
+│   │   ├── parser_call_bracketed.c
+│   │
+│   ├── class/
+│   │   ├── parser_class_attributes.c
+│   │   ├── parser_class_def.c
+│   │   ├── parser_class_definition.c
+│   │   ├── parser_class_end.c
+│   │   ├── parser_class_endclass.c
+│   │   ├── parser_class_endinterface.c
+│   │   ├── parser_class_errors.c
+│   │   ├── parser_class_implementation.c
+│   │   ├── parser_class_interface.c
+│   │   ├── parser_class_method.c
+│   │   ├── parser_class_method_def.c
+│   │   ├── parser_class_method_definition.c
+│   │   ├── parser_class_method_impl.c
+│   │   ├── parser_class_simple.c
+│   │   ├── parser_class_visibility.c
+│   │
+│   ├── method/
+│   │   ├── parser_method_definition.c
+│   │   ├── parser_method_error.c
+│   │   ├── parser_method_implementation.c
+│   │   ├── parser_method_visibility.c
+│   │
+│   ├── loop/
+│   │   ├── parser_loop_loop.c
+│   │   ├── parser_loop_other_construct.c
+│   │   ├── parser_loop.c
+│   │
+│   ├── expression/
+│   │   ├── parser_expression_function.c
+│   │   ├── parser_expression_logical.c
+│   │   ├── parser_expression_function_call.c
+│   │   ├── parser_expression_literal.c
+│   │   ├── parser_expression_identifier.c
+│   │   ├── parser_expression_ternary.c
+│   │   ├── parser_expression_operator.c
+│   │   ├── parser_expression_variable.c
+│   │   ├── parser_expression_bracket.c
+│   │   ├── parser_expression_complex.c
+│   │   ├── parser_expression_conditional.c
+│   │   ├── parser_expression_assignment.c
+│   │   ├── parser_expression_array_access.c
+│   │   ├── parser_expression.c
+│   │
+│   ├── parser_perform.c
+│   ├── parser_data.c
+│   ├── parser_call.c
+│   ├── parser_class.c
+│   ├── parser_method.c
+│   ├── parser_loop.c
+│   ├── parser_expression.c
+│
+├── tests/                       # Тесты для различных модулей
+│   ├── test_parser_data.c
+│   ├── test_parser_perform.c
+│   ├── test_parser_call.c
+│   ├── test_parser_class.c
+│   ├── test_parser_method.c
+│   ├── test_parser_loop.c
+│   ├── test_parser_expression.c
+│   └── ...
+│
+├── docs/                        # Документация
+│   ├── design.md
+│   ├── api.md
+│   └── usage.md
+│
+├── build/                       # Каталог сборки (output)
+│
+├── Makefile                    # Файл сборки (или CMakeLists.txt)
+├── README.md
+
 ```
 
 ## ✅ План поэтапной реализации
